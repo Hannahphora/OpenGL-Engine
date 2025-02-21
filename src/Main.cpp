@@ -17,8 +17,27 @@ int main(int argc, char** argv) {
 	Window* window = new Window();
 	createInputActions(window);
 
+	// timing variables
+	double prevTime = glfwGetTime();
+	double frameTime = 0.0;
+	double lag = 0.0;
+	const double simDelta = 1.0 / 60.0;
+
 	// main loop
 	while (!glfwWindowShouldClose(window->wnd)) {
+		
+		// timing
+		double currentTime = glfwGetTime();
+		frameTime = currentTime - prevTime;
+		prevTime = currentTime;
+		lag += frameTime;
+
+		while (lag >= simDelta) {
+
+			// this updates at fixed sim rate
+
+			lag -= simDelta;
+		}
 
 		// rendering
 		glClearColor(.0f, .0f, .0f, 1.f);

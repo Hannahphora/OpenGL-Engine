@@ -21,12 +21,13 @@ struct Binding {
     int event; // GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
     
     // trigger thresholds for mouse pos/scroll
-    // if thresholds are zero, then they are not used
+    // if thresholds are zero, then they are not considered
     double thresholdX = 0.0;
     double thresholdY = 0.0;
 };
 
 struct InputAction {
+    bool active = true; // TODO: add ability to toggle active
     std::string id;
     std::vector<Binding> bindings;
     std::vector<std::function<void()>> callbacks;
@@ -64,6 +65,7 @@ public:
 
     double getMouseX() const;
     double getMouseY() const;
+
     double getScrollX() const;
     double getScrollY() const;
 
@@ -72,7 +74,7 @@ private:
     GLFWwindow* window;
     std::unordered_map<std::string, InputAction> actions;
 
-    // TODO: pack these bool arrays
+    // TODO: pack these bool arrays (if thats a good idea)
     bool keyState[MAX_KEYS] = { false };
     bool prevKeyState[MAX_KEYS] = { false };
     bool mouseButtonState[MAX_MOUSE_BUTTONS] = { false };

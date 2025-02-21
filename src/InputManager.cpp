@@ -22,7 +22,7 @@ static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) 
     wnd->inputManager->updateMouseScroll(xoffset, yoffset);
 }
 
-// constructor
+// constructor/initialisation
 
 InputManager::InputManager(GLFWwindow* wnd) : window(wnd) {
 
@@ -59,37 +59,47 @@ void InputManager::updateMouseScroll(double xoffset, double yoffset) {
 // action/binding funcs
 
 int InputManager::registerAction(const std::string& actionID) {
-    if (!actions.count(actionID)) actions[actionID] = InputAction{ actionID };
-    else return 1;
+    if (actions.count(actionID)) return 1;
+    actions[actionID] = InputAction{ .id = actionID };
+    return 0;
 }
 
 int InputManager::registerAction(const std::string& actionID, const Binding& binding, std::function<void()> callback) {
-    if (!actions.count(actionID)) actions[actionID] = InputAction{ actionID };
-    else return 1;
-
+    if (actions.count(actionID)) return 1;
+    actions[actionID] = InputAction{ .id = actionID };
     addActionBinding(actionID, binding);
     addActionCallback(actionID, callback);
+    return 0;
 }
 
 int InputManager::addActionBinding(const std::string& actionID, const Binding& binding) {
     if (!actions.count(actionID)) return 1;
     actions[actionID].bindings.emplace_back(binding);
+    return 0;
 }
 
 int InputManager::addActionCallback(const std::string& actionID, std::function<void()> callback) {
     if (!actions.count(actionID)) return 1;
     actions[actionID].callbacks.emplace_back(callback);
+    return 0;
 }
 
 void InputManager::processActions() {
-    // lambda to check trigger for key and mouse buttons
-    auto checkTrigger = [this](bool current, bool previous, int event) -> bool {
+
+    // check trigger for keys and mouse buttons
+    auto checkTrigger = [](bool current, bool previous, int event) -> bool {
         switch (event) {
         case GLFW_PRESS:   return current && !previous;
         case GLFW_REPEAT:  return current && previous;
         case GLFW_RELEASE: return !current && previous;
         default:           return false;
         }
+    };
+
+    // check thresholds for mouse pos/scroll
+    auto checkThreshold = [](double thresholdX, double deltaX, double thresholdY, double deltaY) -> bool {
+        return ((std::abs(thresholdX) > std::numeric_limits<double>::epsilon() * std::abs(thresholdX)) && (std::abs(deltaX) >= thresholdX))
+            || ((std::abs(thresholdY) > std::numeric_limits<double>::epsilon() * std::abs(thresholdY)) && (std::abs(deltaY) >= thresholdY));
     };
 
     // compute deltas for mouse pos/scroll
@@ -100,13 +110,14 @@ void InputManager::processActions() {
 
     // iterate over all actions and bindings
     for (auto& [actionID, action] : actions) {
+        if (!action.active) break;
+
         bool triggered = std::any_of(action.bindings.begin(), action.bindings.end(), [&](const Binding& binding) {
             switch (binding.type) {
             case Binding::Type::Key: return checkTrigger(keyState[binding.code], prevKeyState[binding.code], binding.event);
             case Binding::Type::MouseButton: return checkTrigger(mouseButtonState[binding.code], prevMouseButtonState[binding.code], binding.event);
-                // im leaving these next 2 lines in cos its funny :3
-            case Binding::Type::MousePos:  return (((std::abs(binding.thresholdX - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdX)) ? false : (std::abs(mouseDeltaX) >= binding.thresholdX)) || ((std::abs(binding.thresholdY - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdY)) ? false : (std::abs(mouseDeltaY) >= binding.thresholdY)));
-            case Binding::Type::MouseScroll: return (((std::abs(binding.thresholdX - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdX)) ? false : (std::abs(scrollDeltaX) >= binding.thresholdX)) || ((std::abs(binding.thresholdY - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdY)) ? false : (std::abs(scrollDeltaY) >= binding.thresholdY)));
+            case Binding::Type::MousePos:  return checkThreshold(binding.thresholdX, mouseDeltaX, binding.thresholdY, mouseDeltaY);
+            case Binding::Type::MouseScroll: return checkThreshold(binding.thresholdX, scrollDeltaX, binding.thresholdY, scrollDeltaY);
             default: return false;
             }
         });
