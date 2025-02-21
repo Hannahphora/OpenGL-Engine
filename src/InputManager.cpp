@@ -104,8 +104,9 @@ void InputManager::processActions() {
             switch (binding.type) {
             case Binding::Type::Key: return checkTrigger(keyState[binding.code], prevKeyState[binding.code], binding.event);
             case Binding::Type::MouseButton: return checkTrigger(mouseButtonState[binding.code], prevMouseButtonState[binding.code], binding.event);
-            case Binding::Type::MousePos:  return (std::abs(mouseDeltaX) >= binding.thresholdX || std::abs(mouseDeltaY) >= binding.thresholdY);
-            case Binding::Type::MouseScroll: return (std::abs(scrollDeltaX) >= binding.thresholdX || std::abs(scrollDeltaY) >= binding.thresholdY);
+                // im leaving these next 2 lines in cos its funny :3
+            case Binding::Type::MousePos:  return (((std::abs(binding.thresholdX - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdX)) ? false : (std::abs(mouseDeltaX) >= binding.thresholdX)) || ((std::abs(binding.thresholdY - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdY)) ? false : (std::abs(mouseDeltaY) >= binding.thresholdY)));
+            case Binding::Type::MouseScroll: return (((std::abs(binding.thresholdX - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdX)) ? false : (std::abs(scrollDeltaX) >= binding.thresholdX)) || ((std::abs(binding.thresholdY - 0.0) <= std::numeric_limits<double>::epsilon() * std::abs(binding.thresholdY)) ? false : (std::abs(scrollDeltaY) >= binding.thresholdY)));
             default: return false;
             }
         });

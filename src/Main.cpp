@@ -17,19 +17,17 @@ int main(int argc, char** argv) {
 	Window* window = new Window();
 	createInputActions(window);
 
-
-
-
 	// main loop
 	while (!glfwWindowShouldClose(window->wnd)) {
 
-		window->inputManager->processActions();
-		
+		// rendering
 		glClearColor(.0f, .0f, .0f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// swap buffers and process events
 		glfwSwapBuffers(window->wnd);
 		glfwPollEvents();
+		window->inputManager->processActions();
 	}
 
 	// cleanup
@@ -49,4 +47,5 @@ void createInputActions(Window* window) {
 	window->inputManager->registerAction("ToggleFullscreen", Binding{ .type = Binding::Type::Key, .code = GLFW_KEY_F, .event = GLFW_PRESS }, [window]() {
 		window->toggleFullscreen();
 	});
+
 }

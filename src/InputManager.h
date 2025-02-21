@@ -21,8 +21,9 @@ struct Binding {
     int event; // GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
     
     // trigger thresholds for mouse pos/scroll
-    double thresholdX;
-    double thresholdY;
+    // if thresholds are zero, then they are not used
+    double thresholdX = 0.0;
+    double thresholdY = 0.0;
 };
 
 struct InputAction {
