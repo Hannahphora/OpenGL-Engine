@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <iostream>
 
-// GENERAL CALLBACKS
+// callbacks
 
 void error_callback(int error, const char* description) {
 	fprintf_s(stderr, "Error: %s\n", description);
@@ -13,33 +13,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-// INPUT CALLBACKS
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	Window* wnd = (Window*)glfwGetWindowUserPointer(window);
-	wnd->inputManager.updateKeyState(key, action);
-	wnd->inputManager.processKeyActions(); // should i call processActions here, or in main loop?
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-	Window* wnd = (Window*)glfwGetWindowUserPointer(window);
-	wnd->inputManager.updateMouseButtonState(button, action);
-	wnd->inputManager.processMouseButtonActions();
-}
-
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-	Window* wnd = (Window*)glfwGetWindowUserPointer(window);
-	wnd->inputManager.updateMousePosition(xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	Window* wnd = (Window*)glfwGetWindowUserPointer(window);
-	wnd->inputManager.updateMouseScrollOffset(xoffset, yoffset);
-}
-
-// WINDOW FUNCTIONS
+// window constructor
 
 Window::Window() {
+
 	// init glfw
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit()) {
@@ -64,21 +41,19 @@ Window::Window() {
 	glfwMakeContextCurrent(wnd);
 	glfwSetFramebufferSizeCallback(wnd, framebuffer_size_callback);
 
-	// register input callbacks
-	glfwSetKeyCallback(wnd, key_callback);
-	glfwSetMouseButtonCallback(wnd, mouse_button_callback);
-	glfwSetCursorPosCallback(wnd, cursor_position_callback);
-	glfwSetScrollCallback(wnd, scroll_callback);
-
 	// init glad
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		fprintf_s(stderr, "Failed to init glad\n");
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
+
+	// init InputManager
+	inputManager = new InputManager(wnd);
 }
 
 void Window::cleanup() {
+	delete inputManager;
 	glfwTerminate();
 }
 

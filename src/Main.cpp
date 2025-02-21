@@ -5,9 +5,9 @@
 
 #include "Window.h"
 #include <cstdlib>
-#include <stdio.h>
+#include <iostream>
 
-void BindInputActions(Window* window);
+void createInputActions(Window* window);
 
 int main(int argc, char** argv) {
 #ifdef _DEBUG
@@ -15,10 +15,15 @@ int main(int argc, char** argv) {
 #endif
 
 	Window* window = new Window();
-	BindInputActions(window);
+	createInputActions(window);
+
+
+
 
 	// main loop
 	while (!glfwWindowShouldClose(window->wnd)) {
+
+		window->inputManager->processActions();
 		
 		glClearColor(.0f, .0f, .0f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -33,17 +38,15 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-void BindInputActions(Window* window) {
+void createInputActions(Window* window) {
 
-	window->inputManager.bindKeyAction(GLFW_KEY_ESCAPE, GLFW_PRESS, [window]() {
+	// quit
+	window->inputManager->registerAction("Quit", Binding{ .type = Binding::Type::Key, .code = GLFW_KEY_ESCAPE, .event = GLFW_PRESS }, [window]() {
 		glfwSetWindowShouldClose(window->wnd, true);
 	});
 
-	window->inputManager.bindKeyAction(GLFW_KEY_F, GLFW_PRESS, [window]() {
-		window->toggleFullscreen();
-	});
-
-	window->inputManager.bindMouseButtonAction(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, [window]() {
+	// toggle fullscreen
+	window->inputManager->registerAction("ToggleFullscreen", Binding{ .type = Binding::Type::Key, .code = GLFW_KEY_F, .event = GLFW_PRESS }, [window]() {
 		window->toggleFullscreen();
 	});
 }

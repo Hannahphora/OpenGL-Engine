@@ -1,15 +1,16 @@
 #pragma once
 
-#include "InputManager.h"
-
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
+#include "InputManager.h"
+class InputManager;
+
 class Window {
 public:
 
-	const char* TITLE = "WindOwO";
+	const char* TITLE = "Window";
 	const uint32_t WIDTH = 800;
 	const uint32_t HEIGHT = 600;
 
@@ -18,7 +19,7 @@ public:
 	void cleanup();
 	void toggleFullscreen();
 
-	InputManager inputManager = {};
+	InputManager* inputManager = nullptr;
 	GLFWwindow* wnd = nullptr;
 	GLFWmonitor* monitor = nullptr;
 

@@ -1,68 +1,88 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include "Window.h"
+class Window;
+
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 #define MAX_KEYS 350
 #define MAX_MOUSE_BUTTONS 8
-#define NUM_ACTIONS 3 // GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
 
-// TODO: use hashmap instead of full arrays for storing state
-// TODO: allow for multiple actions to be bound to the same callback
+// TODO: add composite bindings, that allow actions to be run
+//       only when multiple binding conditions are met
+
+struct Binding {
+    enum class Type { Key, MouseButton, MousePos, MouseScroll } type;
+    int code;
+    int event; // GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
+    
+    // trigger thresholds for mouse pos/scroll
+    double thresholdX;
+    double thresholdY;
+};
 
 struct InputAction {
-    const char* id = nullptr;
-
-
+    std::string id;
+    std::vector<Binding> bindings;
+    std::vector<std::function<void()>> callbacks;
 };
 
 class InputManager {
 public:
     
-    // key funcs
+    InputManager(GLFWwindow* wnd);
+
+    // update state funcs (called from glfw callbacks)
+
     void updateKeyState(int key, int action);
+    void updateMouseButtonState(int button, int action);
+    void updateMousePos(double xpos, double ypos);
+    void updateMouseScroll(double xoffset, double yoffset);
+
+    // action/binding funcs
+
+    void processActions();
+    int registerAction(const std::string& actionID);
+    int registerAction(const std::string& actionID, const Binding& binding, std::function<void()> callback);
+    int addActionBinding(const std::string& actionID, const Binding& binding);
+    int addActionCallback(const std::string& actionID, std::function<void()> callback);
+
+    // getters for input states
+
     bool isKeyPressed(int key) const;
     bool isKeyHeld(int key) const;
     bool isKeyReleased(int key) const;
-    void bindKeyAction(int key, int action, std::function<void()> callback);
-    void processKeyActions();
 
-    // mouse button funcs
-    void updateMouseButtonState(int button, int action);
     bool isMouseButtonPressed(int button) const;
     bool isMouseButtonHeld(int button) const;
     bool isMouseButtonReleased(int button) const;
-    void bindMouseButtonAction(int button, int action, std::function<void()> callback);
-    void processMouseButtonActions();
 
-    // mouse movement funcs
-    void updateMousePosition(double xpos, double ypos);
     double getMouseX() const;
     double getMouseY() const;
-    void processMouseMove();
-
-    // mouse scroll funcs
-    void updateMouseScrollOffset(double xoffset, double yoffset);
-    double getMouseScrollOffsetX() const;
-    double getMouseScrollOffsetY() const;
-    void processMouseScroll();
+    double getScrollX() const;
+    double getScrollY() const;
 
 private:
 
-    // key state arrays
+    GLFWwindow* window;
+    std::unordered_map<std::string, InputAction> actions;
+
+    // TODO: pack these bool arrays
     bool keyState[MAX_KEYS] = { false };
     bool prevKeyState[MAX_KEYS] = { false };
-    std::map<int, std::vector<std::function<void()>>[NUM_ACTIONS]> keyCallbacks = {};
-
-    // mouse button state arrays
     bool mouseButtonState[MAX_MOUSE_BUTTONS] = { false };
     bool prevMouseButtonState[MAX_MOUSE_BUTTONS] = { false };
-    std::map<std::pair<int, int>, std::vector<std::function<void()>>> mouseButtonCallbacks = {};
 
+    // mouse pos tracking
     double mouseX = 0.0, mouseY = 0.0;
-    double mouseScrollOffsetX = 0.0, mouseScrollOffsetY = 0.0;
+    double prevMouseX = 0.0, prevMouseY = 0.0;
+
+    // scroll tracking (accumulated per frame)
+    double scrollX = 0.0, scrollY = 0.0;
+    double prevScrollX = 0.0, prevScrollY = 0.0;
 
 };
