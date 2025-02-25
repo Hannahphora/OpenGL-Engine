@@ -90,12 +90,18 @@
   <ItemGroup>
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="thirdparty\glad\glad.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\base.frag.glsl" />
+    <None Include="shaders\base.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

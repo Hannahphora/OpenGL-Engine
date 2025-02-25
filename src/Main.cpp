@@ -4,6 +4,7 @@
 #endif
 
 #include "Window.h"
+#include "Shader.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -14,12 +15,28 @@ int main(int argc, char** argv) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
+	// init window & default input actions
 	Window* window = new Window();
 	createInputActions(window);
 
+	// create shaders
+	ShaderProgram shaders("shaders\\base.vert", "shaders\\base.frag");
+
+
+	// vertex data
+	float vertices[] = {
+		-0.5f, -0.5f, 0.0f,
+		 0.5f, -0.5f, 0.0f,
+		 0.0f,  0.5f, 0.0f
+	};
+
+	uint32_t VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
 	// timing
-	double prevTime = glfwGetTime();
-	double lag = 0.0;
+	double prevTime = glfwGetTime(), lag = 0.0;
 	constexpr double simDelta = 1.0 / 60.0;
 
 	// main loop
