@@ -7,7 +7,6 @@ class Window;
 #include <unordered_map>
 #include <vector>
 #include <string>
-#include <algorithm>
 
 #define MAX_KEYS 350
 #define MAX_MOUSE_BUTTONS 8
@@ -22,6 +21,8 @@ struct Binding {
     
     // trigger thresholds for mouse pos/scroll
     // if thresholds are zero, then they are not considered
+    // TODO: is this the best way to have bindings for mouse pos/scroll?
+    //       idk, maybe figure out better alternative
     double thresholdX = 0.0;
     double thresholdY = 0.0;
 };
@@ -48,10 +49,10 @@ public:
     // action/binding funcs
 
     void processActions();
-    int registerAction(const std::string& actionID);
-    int registerAction(const std::string& actionID, const Binding& binding, std::function<void()> callback);
-    int addActionBinding(const std::string& actionID, const Binding& binding);
-    int addActionCallback(const std::string& actionID, std::function<void()> callback);
+    int registerAction(const std::string& id);
+    int registerAction(const std::string& id, const Binding& binding, std::function<void()> callback);
+    int addActionBinding(const std::string& id, const Binding& binding);
+    int addActionCallback(const std::string& id, std::function<void()> callback);
 
     // getters for input states
 

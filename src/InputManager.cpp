@@ -58,29 +58,29 @@ void InputManager::updateMouseScroll(double xoffset, double yoffset) {
 
 // action/binding funcs
 
-int InputManager::registerAction(const std::string& actionID) {
-    if (actions.count(actionID)) return 1;
-    actions[actionID] = InputAction{ .id = actionID };
+int InputManager::registerAction(const std::string& id) {
+    if (actions.count(id)) return 1;
+    actions[id] = InputAction{ .id = id };
     return 0;
 }
 
-int InputManager::registerAction(const std::string& actionID, const Binding& binding, std::function<void()> callback) {
-    if (actions.count(actionID)) return 1;
-    actions[actionID] = InputAction{ .id = actionID };
-    addActionBinding(actionID, binding);
-    addActionCallback(actionID, callback);
+int InputManager::registerAction(const std::string& id, const Binding& binding, std::function<void()> callback) {
+    if (actions.count(id)) return 1;
+    actions[id] = InputAction{ .id = id };
+    addActionBinding(id, binding);
+    addActionCallback(id, callback);
     return 0;
 }
 
-int InputManager::addActionBinding(const std::string& actionID, const Binding& binding) {
-    if (!actions.count(actionID)) return 1;
-    actions[actionID].bindings.emplace_back(binding);
+int InputManager::addActionBinding(const std::string& id, const Binding& binding) {
+    if (!actions.count(id)) return 1;
+    actions[id].bindings.emplace_back(binding);
     return 0;
 }
 
-int InputManager::addActionCallback(const std::string& actionID, std::function<void()> callback) {
-    if (!actions.count(actionID)) return 1;
-    actions[actionID].callbacks.emplace_back(callback);
+int InputManager::addActionCallback(const std::string& id, std::function<void()> callback) {
+    if (!actions.count(id)) return 1;
+    actions[id].callbacks.emplace_back(callback);
     return 0;
 }
 
@@ -102,29 +102,39 @@ void InputManager::processActions() {
             || ((std::abs(thresholdY) > std::numeric_limits<double>::epsilon() * std::abs(thresholdY)) && (std::abs(deltaY) >= thresholdY));
     };
 
-    // compute deltas for mouse pos/scroll
-    double mouseDeltaX = mouseX - prevMouseX;
-    double mouseDeltaY = mouseY - prevMouseY;
-    double scrollDeltaX = scrollX; // already accumulated per frame
-    double scrollDeltaY = scrollY;
+    // iterate over actions
+    for (const auto& [actionID, action] : actions) {
+        if (!action.active) continue;
 
-    // iterate over all actions and bindings
-    for (auto& [actionID, action] : actions) {
-        if (!action.active) break;
-
-        bool triggered = std::any_of(action.bindings.begin(), action.bindings.end(), [&](const Binding& binding) {
-            switch (binding.type) {
-            case Binding::Type::Key: return checkTrigger(keyState[binding.code], prevKeyState[binding.code], binding.event);
-            case Binding::Type::MouseButton: return checkTrigger(mouseButtonState[binding.code], prevMouseButtonState[binding.code], binding.event);
-            case Binding::Type::MousePos:  return checkThreshold(binding.thresholdX, mouseDeltaX, binding.thresholdY, mouseDeltaY);
-            case Binding::Type::MouseScroll: return checkThreshold(binding.thresholdX, scrollDeltaX, binding.thresholdY, scrollDeltaY);
-            default: return false;
+        // iterate over bindings, if any are met then run callbacks
+        if ([&]() -> bool {
+            for (const auto& binding : action.bindings) {
+                switch (binding.type) {
+                case Binding::Type::Key:
+                    if (checkTrigger(keyState[binding.code], prevKeyState[binding.code], binding.event))
+                        return true;
+                    break;
+                case Binding::Type::MouseButton:
+                    if (checkTrigger(mouseButtonState[binding.code], prevMouseButtonState[binding.code], binding.event))
+                        return true;
+                    break;
+                case Binding::Type::MousePos:
+                    if (checkThreshold(binding.thresholdX, mouseX - prevMouseX, binding.thresholdY, mouseY - prevMouseY))
+                        return true;
+                    break;
+                case Binding::Type::MouseScroll:
+                    if (checkThreshold(binding.thresholdX, scrollX, binding.thresholdY, scrollY))
+                        return true;
+                    break;
+                default:
+                    break;
+                }
             }
-        });
-
-        if (triggered)
-            for (auto& callback : action.callbacks)
+            return false;
+        }()) {
+            for (const auto& callback : action.callbacks)
                 callback();
+        }
     }
 
     // update prev states

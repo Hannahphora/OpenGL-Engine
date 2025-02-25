@@ -52,6 +52,8 @@ Window::Window() {
 	inputManager = new InputManager(wnd);
 }
 
+// window funcs
+
 void Window::cleanup() {
 	delete inputManager;
 	glfwTerminate();
