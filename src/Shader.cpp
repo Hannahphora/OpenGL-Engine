@@ -10,16 +10,17 @@ ShaderProgram::ShaderProgram(const char* vertPath, const char* fragPath) {
 	vertFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	fragFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	try {
+		// open files
 		vertFile.open(vertPath);
 		fragFile.open(fragPath);
 		std::stringstream vertStream, fragStream;
-		
+		// read file contents into streams
 		vertStream << vertFile.rdbuf();
 		fragStream << fragFile.rdbuf();
-
+		// close file handlers
 		vertFile.close();
 		fragFile.close();
-
+		// convert stream to string
 		vertSrc = vertStream.str();
 		fragSrc = fragStream.str();
 	}
