@@ -57,7 +57,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)thirdparty\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)thirdparty\imgui\backends\;$(ProjectDir)thirdparty\imgui\;$(ProjectDir)thirdparty\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -75,7 +75,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)thirdparty\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)thirdparty\imgui\backends\;$(ProjectDir)thirdparty\imgui\;$(ProjectDir)thirdparty\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -93,11 +93,27 @@
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="thirdparty\glad\glad.c" />
+    <ClCompile Include="thirdparty\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="thirdparty\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui_tables.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Window.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="thirdparty\imgui\imconfig.h" />
+    <ClInclude Include="thirdparty\imgui\imgui.h" />
+    <ClInclude Include="thirdparty\imgui\imgui_internal.h" />
+    <ClInclude Include="thirdparty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="thirdparty\imgui\imstb_textedit.h" />
+    <ClInclude Include="thirdparty\imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\base.frag" />
