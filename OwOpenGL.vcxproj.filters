@@ -16,8 +16,14 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="imgui">
+    <Filter Include="External Files">
       <UniqueIdentifier>{9094d563-2a66-4d51-b481-d51f6ae8f4c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External Files\imgui">
+      <UniqueIdentifier>{9ba9175f-c199-4471-a518-89102a6e1b5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External Files\glad">
+      <UniqueIdentifier>{ecdcff23-e97a-4e36-8d60-aa89b70c85c3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,32 +36,35 @@
     <ClCompile Include="src\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="thirdparty\glad\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="thirdparty\imgui\imgui.cpp">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="thirdparty\imgui\imgui_demo.cpp">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="thirdparty\imgui\imgui_draw.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="thirdparty\imgui\imgui_tables.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="thirdparty\imgui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="thirdparty\imgui\backends\imgui_impl_glfw.cpp">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="thirdparty\imgui\backends\imgui_impl_opengl3.cpp">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="thirdparty\imgui\imgui_tables.cpp">
+      <Filter>External Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="thirdparty\imgui\imgui_widgets.cpp">
+      <Filter>External Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="thirdparty\glad\glad.c">
+      <Filter>External Files\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,31 +78,34 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\imgui\imconfig.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="thirdparty\imgui\imgui.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="thirdparty\imgui\imgui_internal.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="thirdparty\imgui\imstb_rectpack.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="thirdparty\imgui\imstb_textedit.h">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\imgui\imstb_truetype.h">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\imgui\imgui.h">
+      <Filter>External Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\imgui\backends\imgui_impl_glfw.h">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl3.h">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl3_loader.h">
-      <Filter>imgui</Filter>
+      <Filter>External Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\imgui\imgui_internal.h">
+      <Filter>External Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\imgui\imstb_rectpack.h">
+      <Filter>External Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\imgui\imstb_textedit.h">
+      <Filter>External Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

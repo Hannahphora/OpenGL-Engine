@@ -69,3 +69,15 @@ void Window::toggleFullscreen() {
 	else glfwSetWindowMonitor(wnd, nullptr, xpos, ypos, width, height, 0);
 	fullscreen = !fullscreen;
 }
+
+void Window::toggleShowCursor() {
+	if (!cursorvis) glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	else glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	cursorvis = !cursorvis;
+}
+
+void Window::setShowCursor(bool b) {
+	cursorvis = b;
+	if (cursorvis) glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	else glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
