@@ -5,12 +5,14 @@
 
 // callbacks
 
-void error_callback(int error, const char* description) {
+static void error_callback(int error, const char* description) {
 	fprintf_s(stderr, "Error: %s\n", description);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+	width = width;
+	height = height;
 }
 
 // window constructor
@@ -70,14 +72,20 @@ void Window::toggleFullscreen() {
 	fullscreen = !fullscreen;
 }
 
-void Window::toggleShowCursor() {
-	if (!cursorvis) glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	else glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	cursorvis = !cursorvis;
-}
-
-void Window::setShowCursor(bool b) {
+void Window::setCursorVis(bool b) {
 	cursorvis = b;
 	if (cursorvis) glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	else glfwSetInputMode(wnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+int Window::getWidth() {
+	int width, height;
+	glfwGetWindowSize(wnd, &width, &height);
+	return width;
+}
+
+int Window::getHeight() {
+	int width, height;
+	glfwGetWindowSize(wnd, &width, &height);
+	return height;
 }

@@ -18,19 +18,21 @@ public:
 
 	void cleanup();
 	void toggleFullscreen();
-	void toggleShowCursor();
-	void setShowCursor(bool b);
+
+	void setCursorVis(bool b);
+	bool getCursorVis() const { return cursorvis; }
+
+	int getWidth();
+	int getHeight();
 
 	InputManager* inputManager = nullptr;
 	GLFWwindow* wnd = nullptr;
 	GLFWmonitor* monitor = nullptr;
 
-	bool fullscreen = false;
-	bool cursorvis = true;
-
 private:
 
+	bool fullscreen = false;
+	bool cursorvis = true;
 	int xpos = 0, ypos = 0;
 	int width = 0, height = 0;
-
 };

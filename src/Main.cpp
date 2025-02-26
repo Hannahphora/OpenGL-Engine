@@ -27,24 +27,18 @@ int main(int argc, char** argv) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	// init window
 	Window* window = new Window();
 
-	// create input actions
+	// global input actions
 	{
-		// quit
 		window->inputManager->registerAction("Quit", Binding::key(GLFW_KEY_ESCAPE, GLFW_PRESS), [window]() {
 			glfwSetWindowShouldClose(window->wnd, true);
 		});
-
-		// toggle fullscreen
 		window->inputManager->registerAction("ToggleFullscreen", Binding::key(GLFW_KEY_F, GLFW_PRESS), [window]() {
 			window->toggleFullscreen();
 		});
-
-		// toggle cursor
 		window->inputManager->registerAction("ToggleCursor", Binding::key(GLFW_KEY_T, GLFW_PRESS), [window]() {
-			window->toggleShowCursor();
+			window->setCursorVis(!window->getCursorVis());
 		});
 	}
 
@@ -128,14 +122,11 @@ int main(int argc, char** argv) {
 	shaders.use();
 	shaders.setInt("texture1", 0);
 
-	// modifiable state
 	bool drawWireframes = false;
 	float bgColor[3] = { 0.0f, 0.0f, 0.0f };
 	glClearColor(bgColor[0], bgColor[1], bgColor[2], 1.f);
-
-	// global state
 	glEnable(GL_DEPTH_TEST);
-	window->setShowCursor(false);
+	window->setCursorVis(false);
 
 	// init imgui
 	IMGUI_CHECKVERSION();
@@ -146,29 +137,79 @@ int main(int argc, char** argv) {
 	ImGui_ImplGlfw_InitForOpenGL(window->wnd, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
 
-	// create camera
-	Camera camera(window, glm::vec3(0.0f, 0.0f, 3.0f));
-
 	// timing variables
-	double prevTime = glfwGetTime(), simLag = 0.0;
+	double prevTime = glfwGetTime(), simLag = 0.0, deltaTime = 0.0;
 	constexpr double simDelta = 1.0 / 60.0;
+
+	// create camera
+	Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+	bool firstMouse = true;
+	float lastX = window->getWidth() / 2.0f;
+	float lastY = window->getHeight() / 2.0f;
+
+	// register camera input actions
+	{
+		window->inputManager->registerAction("CameraForward", Binding::key(GLFW_KEY_W, GLFW_REPEAT), [&]() {
+			camera.processKeyboard(Camera::Movement::Forward, (float)deltaTime);
+		});
+		window->inputManager->registerAction("CameraBackward", Binding::key(GLFW_KEY_S, GLFW_REPEAT), [&]() {
+			camera.processKeyboard(Camera::Movement::Backward, (float)deltaTime);
+		});
+		window->inputManager->registerAction("CameraLeft", Binding::key(GLFW_KEY_A, GLFW_REPEAT), [&]() {
+			camera.processKeyboard(Camera::Movement::Left, (float)deltaTime);
+		});
+		window->inputManager->registerAction("CameraRight", Binding::key(GLFW_KEY_D, GLFW_REPEAT), [&]() {
+			camera.processKeyboard(Camera::Movement::Right, (float)deltaTime);
+		});
+		window->inputManager->registerAction("CameraUp", Binding::key(GLFW_KEY_SPACE, GLFW_REPEAT), [&]() {
+			camera.processKeyboard(Camera::Movement::Up, (float)deltaTime);
+		});
+		window->inputManager->registerAction("CameraDown", Binding::key(GLFW_KEY_LEFT_CONTROL, GLFW_REPEAT), [&]() {
+			camera.processKeyboard(Camera::Movement::Down, (float)deltaTime);
+		});
+
+		window->inputManager->registerAction("CameraLook", Binding::mouseMove(), [&]() {
+			if (window->getCursorVis()) return;
+
+			float xpos = (float)window->inputManager->getMouseX();
+			float ypos = (float)window->inputManager->getMouseY();
+
+			if (firstMouse) {
+				lastX = xpos;
+				lastY = ypos;
+				firstMouse = false;
+			}
+
+			float xoffset = xpos - lastX;
+			float yoffset = ypos - lastY;
+			lastX = xpos;
+			lastY = ypos;
+
+			camera.processMouseMovement(-xoffset, -yoffset);
+		});
+
+		window->inputManager->registerAction("CameraScroll", Binding::scrollUp(), [&]() {
+			float scrollY = window->inputManager->getScrollY();
+			camera.processMouseScroll(scrollY);
+		});
+		window->inputManager->addActionBinding("CameraScroll", Binding::scrollDown());
+
+		window->inputManager->addActionCallback("ToggleCursor", [&]() {
+			firstMouse = true;
+		});
+	}
 
 	// main loop
 	while (!glfwWindowShouldClose(window->wnd)) {
 		double currentTime = glfwGetTime();
-		double deltaTime = currentTime - prevTime;
+		deltaTime = currentTime - prevTime;
 		simLag += deltaTime;
 		prevTime = currentTime;
 
 		while (simLag >= simDelta) {
-			// update sim at fixed rate
 			simLag -= simDelta;
+			// update sim here
 		}
-
-		camera.deltaTime = deltaTime;
-
-		int width, height;
-		glfwGetWindowSize(window->wnd, &width, &height);
 
 		// layout imgui frame
 		{
@@ -187,7 +228,7 @@ int main(int argc, char** argv) {
 			// debug info
 			ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0);
 			ImGui::Text("FPS: %.1f", deltaTime > 0.0 ? 1.0 / deltaTime : 0.0);
-			ImGui::Text("Window Size: %dx%d", width, height);
+			ImGui::Text("Window Size: %dx%d", window->getWidth(), window->getHeight());
 			ImGui::Separator();
 
 			// controls
@@ -196,24 +237,20 @@ int main(int argc, char** argv) {
 			ImGui::End();
 		}
 
-		// set clear col
+		// clear screen and set draw mode
 		glClearColor(bgColor[0], bgColor[1], bgColor[2], 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPolygonMode(GL_FRONT_AND_BACK, drawWireframes ? GL_LINE : GL_FILL);
 
-		// set poly mode based on drawOutlines
-		if (drawWireframes) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		// bind textures
+		// bind textures & use shader program
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-
 		shaders.use();
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.getZoom()),
+			(float)window->getWidth() / (float)window->getHeight(), 0.1f, 100.0f);
 		shaders.setMat4("projection", projection);
-
-		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 view = camera.getViewMatrix();
 		shaders.setMat4("view", view);
 
 		glBindVertexArray(VAO);
@@ -226,7 +263,7 @@ int main(int argc, char** argv) {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		// draw imgui on top of scene
+		// render imgui on top of scene
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
