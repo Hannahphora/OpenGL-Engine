@@ -1,5 +1,34 @@
 #include "InputManager.h"
 
+// binding constructors
+
+Binding Binding::key(int code, int event) {
+    return Binding{ Type::Key, code, event };
+}
+
+Binding Binding::mouseButton(int code, int event) {
+    return Binding{ Type::MouseButton, code, event };
+}
+
+Binding Binding::mouseMove() {
+    return Binding{ Type::MouseMove };
+}
+
+Binding Binding::scrollUp() {
+    return Binding{ Type::MouseScrollUp };
+}
+
+Binding Binding::scrollDown() {
+    return Binding{ Type::MouseScrollDown };
+}
+
+Binding Binding::composite(std::initializer_list<Binding> bindings) {
+    Binding b;
+    b.type = Type::Composite;
+    b.subBindings.assign(bindings.begin(), bindings.end());
+    return b;
+}
+
 // glfw input callbacks
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -41,8 +70,8 @@ void InputManager::updateKeyState(int key, int action) {
 }
 
 void InputManager::updateMouseButtonState(int button, int action) {
-    prevMouseButtonState[button] = mouseButtonState[button];
-    mouseButtonState[button] = (action != GLFW_RELEASE);
+    prevMBState[button] = mbState[button];
+    mbState[button] = (action != GLFW_RELEASE);
 }
 
 void InputManager::updateMousePos(double xpos, double ypos) {
@@ -84,7 +113,14 @@ int InputManager::addActionCallback(const std::string& id, std::function<void()>
     return 0;
 }
 
+int InputManager::setActionActive(const std::string& id, bool active) {
+    if (!actions.count(id)) return 1;
+    actions[id].active = active;
+    return 0;
+}
+
 void InputManager::processActions() {
+    double epsilon = std::numeric_limits<double>::epsilon();
 
     // check trigger for keys and mouse buttons
     auto checkTrigger = [](bool current, bool previous, int event) -> bool {
@@ -96,10 +132,30 @@ void InputManager::processActions() {
         }
     };
 
-    // check thresholds for mouse pos/scroll
-    auto checkThreshold = [](double thresholdX, double deltaX, double thresholdY, double deltaY) -> bool {
-        return ((std::abs(thresholdX) > std::numeric_limits<double>::epsilon() * std::abs(thresholdX)) && (std::abs(deltaX) >= thresholdX))
-            || ((std::abs(thresholdY) > std::numeric_limits<double>::epsilon() * std::abs(thresholdY)) && (std::abs(deltaY) >= thresholdY));
+    // recursive lambda to check binding, including composites
+    std::function<bool(const Binding&)> checkBinding;
+    checkBinding = [&](const Binding& binding) -> bool {
+        if (binding.type == Binding::Type::Composite) {
+            for (const auto& sub : binding.subBindings) 
+                if (!checkBinding(sub))
+                    return false;
+            return true;
+        }
+
+        switch (binding.type) {
+        case Binding::Type::Key:
+            return checkTrigger(keyState[binding.code], prevKeyState[binding.code], binding.event);
+        case Binding::Type::MouseButton:
+            return checkTrigger(mbState[binding.code], prevMBState[binding.code], binding.event);
+        case Binding::Type::MouseMove:
+            return (std::abs(mouseX - prevMouseX) > epsilon) || (std::abs(mouseY - prevMouseY) > epsilon);
+        case Binding::Type::MouseScrollUp:
+            return scrollY > epsilon;
+        case Binding::Type::MouseScrollDown:
+            return scrollY < -epsilon;
+        default:
+            return false;
+        }
     };
 
     // iterate over actions
@@ -108,28 +164,9 @@ void InputManager::processActions() {
 
         // iterate over bindings, if any are met then run callbacks
         if ([&]() -> bool {
-            for (const auto& binding : action.bindings) {
-                switch (binding.type) {
-                case Binding::Type::Key:
-                    if (checkTrigger(keyState[binding.code], prevKeyState[binding.code], binding.event))
-                        return true;
-                    break;
-                case Binding::Type::MouseButton:
-                    if (checkTrigger(mouseButtonState[binding.code], prevMouseButtonState[binding.code], binding.event))
-                        return true;
-                    break;
-                case Binding::Type::MousePos:
-                    if (checkThreshold(binding.thresholdX, mouseX - prevMouseX, binding.thresholdY, mouseY - prevMouseY))
-                        return true;
-                    break;
-                case Binding::Type::MouseScroll:
-                    if (checkThreshold(binding.thresholdX, scrollX, binding.thresholdY, scrollY))
-                        return true;
-                    break;
-                default:
-                    break;
-                }
-            }
+            for (const auto& binding : action.bindings)
+                if (checkBinding(binding))
+                    return true;
             return false;
         }()) {
             for (const auto& callback : action.callbacks)
@@ -139,11 +176,9 @@ void InputManager::processActions() {
 
     // update prev states
     memcpy(prevKeyState, keyState, sizeof(keyState));
-    memcpy(prevMouseButtonState, mouseButtonState, sizeof(mouseButtonState));
+    memcpy(prevMBState, mbState, sizeof(mbState));
     prevMouseX = mouseX;
     prevMouseY = mouseY;
-    prevScrollX = scrollX;
-    prevScrollY = scrollY;
     scrollX = 0.0;
     scrollY = 0.0;
 }
@@ -163,15 +198,15 @@ bool InputManager::isKeyReleased(int key) const {
 }
 
 bool InputManager::isMouseButtonPressed(int button) const {
-    return mouseButtonState[button] && !prevMouseButtonState[button];
+    return mbState[button] && !prevMBState[button];
 }
 
 bool InputManager::isMouseButtonHeld(int button) const {
-    return mouseButtonState[button] && prevMouseButtonState[button];
+    return mbState[button] && prevMBState[button];
 }
 
 bool InputManager::isMouseButtonReleased(int button) const {
-    return !mouseButtonState[button] && prevMouseButtonState[button];
+    return !mbState[button] && prevMBState[button];
 }
 
 double InputManager::getMouseX() const {

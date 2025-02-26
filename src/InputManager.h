@@ -8,27 +8,33 @@ class Window;
 #include <vector>
 #include <string>
 
-#define MAX_KEYS 350
-#define MAX_MOUSE_BUTTONS 8
-
-// TODO: add composite bindings, that allow actions to be run
-//       only when multiple binding conditions are met
+constexpr int MAX_KEYS = 350;
+constexpr int MAX_MOUSE_BUTTONS = 8;
 
 struct Binding {
-    enum class Type { Key, MouseButton, MousePos, MouseScroll } type;
-    int code;
-    int event; // GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
-    
-    // trigger thresholds for mouse pos/scroll
-    // if thresholds are zero, then they are not considered
-    // TODO: is this the best way to have bindings for mouse pos/scroll?
-    //       idk, maybe figure out better alternative
-    double thresholdX = 0.0;
-    double thresholdY = 0.0;
+    enum class Type {
+        Key,
+        MouseButton,
+        MouseMove,
+        MouseScrollUp,
+        MouseScrollDown,
+        Composite
+    } type = {};
+    int code = 0;
+    int event = 0; // GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
+    std::vector<Binding> subBindings;
+
+    // constructors
+    static Binding key(int code, int event);
+    static Binding mouseButton(int code, int event);
+    static Binding mouseMove();
+    static Binding scrollUp();
+    static Binding scrollDown();
+    static Binding composite(std::initializer_list<Binding> bindings);
 };
 
 struct InputAction {
-    bool active = true; // TODO: add ability to toggle active
+    bool active = true;
     std::string id;
     std::vector<Binding> bindings;
     std::vector<std::function<void()>> callbacks;
@@ -47,12 +53,14 @@ public:
     void updateMouseScroll(double xoffset, double yoffset);
 
     // action/binding funcs
+    // NOTE: for any funcs that return an int, 0 = success, !0 = failure
 
     void processActions();
     int registerAction(const std::string& id);
     int registerAction(const std::string& id, const Binding& binding, std::function<void()> callback);
     int addActionBinding(const std::string& id, const Binding& binding);
     int addActionCallback(const std::string& id, std::function<void()> callback);
+    int setActionActive(const std::string& id, bool active);
 
     // getters for input states
 
@@ -75,18 +83,17 @@ private:
     GLFWwindow* window;
     std::unordered_map<std::string, InputAction> actions;
 
-    // TODO: pack these bool arrays (if thats a good idea)
+    // key and mouse button state
     bool keyState[MAX_KEYS] = { false };
     bool prevKeyState[MAX_KEYS] = { false };
-    bool mouseButtonState[MAX_MOUSE_BUTTONS] = { false };
-    bool prevMouseButtonState[MAX_MOUSE_BUTTONS] = { false };
+    bool mbState[MAX_MOUSE_BUTTONS] = { false };
+    bool prevMBState[MAX_MOUSE_BUTTONS] = { false };
 
-    // mouse pos tracking
+    // mouse pos state
     double mouseX = 0.0, mouseY = 0.0;
     double prevMouseX = 0.0, prevMouseY = 0.0;
 
-    // scroll tracking (accumulated per frame)
+    // scroll state (accumulated per frame)
     double scrollX = 0.0, scrollY = 0.0;
-    double prevScrollX = 0.0, prevScrollY = 0.0;
 
 };

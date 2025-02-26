@@ -17,18 +17,18 @@ int main(int argc, char** argv) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	// init window & input actions
+	// init window
 	Window* window = new Window();
 
 	// create input actions
 	{
 		// quit
-		window->inputManager->registerAction("Quit", Binding{ .type = Binding::Type::Key, .code = GLFW_KEY_ESCAPE, .event = GLFW_PRESS }, [window]() {
+		window->inputManager->registerAction("Quit", Binding::key(GLFW_KEY_ESCAPE, GLFW_PRESS), [window]() {
 			glfwSetWindowShouldClose(window->wnd, true);
 		});
 
 		// toggle fullscreen
-		window->inputManager->registerAction("ToggleFullscreen", Binding{ .type = Binding::Type::Key, .code = GLFW_KEY_F, .event = GLFW_PRESS }, [window]() {
+		window->inputManager->registerAction("ToggleFullscreen", Binding::key(GLFW_KEY_F, GLFW_PRESS), [window]() {
 			window->toggleFullscreen();
 		});
 	}
@@ -116,9 +116,15 @@ int main(int argc, char** argv) {
 			// debug info
 			ImGui::Text("Frame Time: %.3f ms", frametime * 1000.0);
 			ImGui::Text("FPS: %.1f", frametime > 0.0 ? 1.0 / frametime : 0.0);
+
 			int width, height;
 			glfwGetWindowSize(window->wnd, &width, &height);
 			ImGui::Text("Window Size: %dx%d", width, height);
+
+			ImGui::Text("Cursor { x: %d y: %d }",
+				(int)window->inputManager->getMouseX(),
+				(int)window->inputManager->getMouseY());
+
 			ImGui::Separator();
 
 			// controls
@@ -135,6 +141,9 @@ int main(int argc, char** argv) {
 		else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		shaders.use();
+
+
+
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
