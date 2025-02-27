@@ -15,8 +15,8 @@ public:
 	const uint32_t HEIGHT = 800;
 
 	Window();
+	~Window();
 
-	void cleanup();
 	void toggleFullscreen();
 
 	void setCursorVis(bool b);

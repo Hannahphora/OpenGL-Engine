@@ -1,34 +1,5 @@
 #include "InputManager.h"
 
-// binding constructors
-
-Binding Binding::key(int code, int event) {
-    return Binding{ Type::Key, code, event };
-}
-
-Binding Binding::mouseButton(int code, int event) {
-    return Binding{ Type::MouseButton, code, event };
-}
-
-Binding Binding::mouseMove() {
-    return Binding{ Type::MouseMove };
-}
-
-Binding Binding::scrollUp() {
-    return Binding{ Type::MouseScrollUp };
-}
-
-Binding Binding::scrollDown() {
-    return Binding{ Type::MouseScrollDown };
-}
-
-Binding Binding::composite(std::initializer_list<Binding> bindings) {
-    Binding b;
-    b.type = Type::Composite;
-    b.subBindings.assign(bindings.begin(), bindings.end());
-    return b;
-}
-
 // glfw input callbacks
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -54,8 +25,6 @@ static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) 
 // constructor/initialisation
 
 InputManager::InputManager(GLFWwindow* wnd) : window(wnd) {
-
-    // register glfw input callbacks
     glfwSetKeyCallback(wnd, key_callback);
     glfwSetMouseButtonCallback(wnd, mouse_button_callback);
     glfwSetCursorPosCallback(wnd, cursor_position_callback);
@@ -64,25 +33,50 @@ InputManager::InputManager(GLFWwindow* wnd) : window(wnd) {
 
 //  update state funcs (called from glfw callbacks)
 
-void InputManager::updateKeyState(int key, int action) {
-    prevKeyState[key] = keyState[key];
-    keyState[key] = (action != GLFW_RELEASE);
+void InputManager::updateKeyState(int code, int event) {
+    prevKeyState[code] = keyState[code];
+    keyState[code] = (event != GLFW_RELEASE);
+    for (const auto& callback : keyCallbacks)
+        callback(code, event);
 }
 
-void InputManager::updateMouseButtonState(int button, int action) {
-    prevMBState[button] = mbState[button];
-    mbState[button] = (action != GLFW_RELEASE);
+void InputManager::updateMouseButtonState(int code, int event) {
+    prevMBState[code] = mbState[code];
+    mbState[code] = (event != GLFW_RELEASE);
+    for (const auto& callback : mouseButtonCallbacks)
+        callback(code, event);
 }
 
 void InputManager::updateMousePos(double xpos, double ypos) {
     mouseX = xpos;
     mouseY = ypos;
+    for (const auto& callback : mouseMoveCallbacks)
+        callback(xpos, ypos);
 }
 
 void InputManager::updateMouseScroll(double xoffset, double yoffset) {
-    // accumulate scroll delta
     scrollX += xoffset;
     scrollY += yoffset;
+    for (const auto& callback : mouseScrollCallbacks)
+        callback(yoffset);
+}
+
+// direct callback funcs
+
+void InputManager::addKeyCallback(std::function<void(int code, int event)> callback) {
+    keyCallbacks.emplace_back(callback);
+}
+
+void InputManager::addMouseButtonCallback(std::function<void(int code, int event)> callback) {
+    mouseButtonCallbacks.emplace_back(callback);
+}
+
+void InputManager::addMouseMoveCallback(std::function<void(double xpos, double ypos)> callback) {
+    mouseMoveCallbacks.emplace_back(callback);
+}
+
+void InputManager::addMouseScrollCallback(std::function<void(double yoffset)> callback) {
+    mouseScrollCallbacks.emplace_back(callback);
 }
 
 // action/binding funcs

@@ -54,12 +54,13 @@ Window::Window() {
 	inputManager = new InputManager(wnd);
 }
 
-// window funcs
-
-void Window::cleanup() {
+Window::~Window() {
 	delete inputManager;
 	glfwTerminate();
 }
+
+// window funcs
+
 
 void Window::toggleFullscreen() {
 	if (!fullscreen) {

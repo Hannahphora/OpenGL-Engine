@@ -25,12 +25,17 @@ struct Binding {
     std::vector<Binding> subBindings;
 
     // constructors
-    static Binding key(int code, int event);
-    static Binding mouseButton(int code, int event);
-    static Binding mouseMove();
-    static Binding scrollUp();
-    static Binding scrollDown();
-    static Binding composite(std::initializer_list<Binding> bindings);
+    static Binding key(int code, int event) { return Binding{ Type::Key, code, event }; }
+    static Binding mouseButton(int code, int event) { return Binding{ Type::MouseButton, code, event }; }
+    static Binding mouseMove() { return Binding{ Type::MouseMove }; }
+    static Binding scrollUp() { return Binding{ Type::MouseScrollUp }; }
+    static Binding scrollDown() { return Binding{ Type::MouseScrollDown }; }
+    static Binding composite(std::initializer_list<Binding> bindings) {
+        Binding b;
+        b.type = Type::Composite;
+        b.subBindings.assign(bindings.begin(), bindings.end());
+        return b;
+    }
 };
 
 struct InputAction {
@@ -47,10 +52,17 @@ public:
 
     // update state funcs (called from glfw callbacks)
 
-    void updateKeyState(int key, int action);
-    void updateMouseButtonState(int button, int action);
+    void updateKeyState(int code, int event);
+    void updateMouseButtonState(int code, int event);
     void updateMousePos(double xpos, double ypos);
     void updateMouseScroll(double xoffset, double yoffset);
+
+    // direct callbacks
+
+    void addKeyCallback(std::function<void(int code, int event)> callback);
+    void addMouseButtonCallback(std::function<void(int code, int event)> callback);
+    void addMouseMoveCallback(std::function<void(double xpos, double ypos)> callback);
+    void addMouseScrollCallback(std::function<void(double yoffset)> callback);
 
     // action/binding funcs
     // NOTE: for any funcs that return an int, 0 = success, !0 = failure
@@ -82,6 +94,12 @@ private:
 
     GLFWwindow* window;
     std::unordered_map<std::string, InputAction> actions;
+
+    // direct callbacks
+    std::vector<std::function<void(int code, int event)>> keyCallbacks;
+    std::vector<std::function<void(int code, int event)>> mouseButtonCallbacks;
+    std::vector<std::function<void(double xpos, double ypos)>> mouseMoveCallbacks;
+    std::vector<std::function<void(double yoffset)>> mouseScrollCallbacks;
 
     // key and mouse button state
     bool keyState[MAX_KEYS] = { false };
