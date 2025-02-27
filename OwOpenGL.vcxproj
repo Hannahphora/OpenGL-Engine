@@ -99,7 +99,6 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
-    <ClCompile Include="src\ModelLoader.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="thirdparty\include\glad\glad.c" />
@@ -116,7 +115,6 @@
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
-    <ClInclude Include="src\ModelLoader.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="thirdparty\include\imgui\backends\imgui_impl_glfw.h" />

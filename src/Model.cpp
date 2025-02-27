@@ -1,6 +1,16 @@
 #include "Model.h"
+#include <stb/stb_image.h>
 
-void Model::loadRawData(const std::string const& path) {
+Model::Model(std::string const& path) {
+    loadModel(path);
+}
+
+void Model::Draw(ShaderProgram& shader) {
+    for (Mesh& mesh : meshes)
+        mesh.Draw(shader);
+}
+
+void Model::loadModel(const std::string const& path) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
         aiProcess_Triangulate |
@@ -14,16 +24,6 @@ void Model::loadRawData(const std::string const& path) {
     }
     directory = path.substr(0, path.find_last_of('/'));
     processNode(scene->mRootNode, scene);
-}
-
-void Model::createGLResources() {
-    for (Mesh& mesh : meshes)
-        mesh.createGLResources(directory);
-}
-
-void Model::Draw(ShaderProgram& shader) {
-    for (Mesh& mesh : meshes)
-        mesh.Draw(shader);
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene) {
@@ -125,7 +125,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         }
         if (!skip) {
             Texture texture;
-            texture.id = 0;
+            texture.id = loadTextureFromFile(str.C_Str(), directory);
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);
@@ -133,4 +133,38 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         }
     }
     return textures;
+}
+
+unsigned int loadTextureFromFile(const char* path, const std::string& directory) {
+    std::string filename = std::string(path);
+    filename = directory + '/' + filename;
+
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    stbi_set_flip_vertically_on_load(true);
+
+    int width, height, nrComponents;
+    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+    if (data) {
+        GLenum format;
+        if (nrComponents == 1) format = GL_RED;
+        else if (nrComponents == 3) format = GL_RGB;
+        else if (nrComponents == 4) format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else {
+        fprintf(stderr, "Error loading texture from: %s\n", filename.c_str());
+    }
+
+    return textureID;
 }

@@ -18,7 +18,6 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
-#include "ModelLoader.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -29,7 +28,6 @@ void initImgui(Window* window);
 void cleanupImgui();
 void registerInputActions(Window* window);
 void registerCameraInput(Camera& camera, Window* window, double& deltaTime);
-void renderLoadingScreen();
 
 // TODO: refactor main.cpp into Engine.cpp/Engine.h and create Engine class
 
@@ -62,8 +60,9 @@ int main(int argc, char** argv) {
 	registerCameraInput(camera, window, deltaTime);
 
 	// load models
-	ModelLoader loader;
-	loader.loadModelAsync("assets/models/backpack/backpack.obj");
+	glClear(GL_COLOR_BUFFER_BIT);
+	glfwSwapBuffers(window->wnd);
+	Model backpack("assets/models/backpack/backpack.obj");
 
 	// main loop
 	while (!glfwWindowShouldClose(window->wnd)) {
@@ -72,61 +71,52 @@ int main(int argc, char** argv) {
 		simLag += deltaTime;
 		prevTime = currentTime;
 
-		loader.update();
-
 		while (simLag >= simDelta) {
 			simLag -= simDelta;
 			// update sim here
 		}
 
-		if (!loader.allModelsLoaded()) {
-			renderLoadingScreen();
-		}
-		else {
-			// layout imgui frame
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-			ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
-			ImGui::Begin("Debug Panel", nullptr,
-				ImGuiWindowFlags_NoDecoration |
-				ImGuiWindowFlags_AlwaysAutoResize |
-				ImGuiWindowFlags_NoFocusOnAppearing |
-				ImGuiWindowFlags_NoNav);
+		// layout imgui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+		ImGui::Begin("Debug Panel", nullptr,
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav);
 
-			ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0);
-			ImGui::Text("FPS: %.1f", deltaTime > 0.0 ? 1.0 / deltaTime : 0.0);
-			ImGui::Text("Window Size: %dx%d", window->getWidth(), window->getHeight());
-			ImGui::Separator();
-			ImGui::Checkbox("Draw Wireframes", &drawWireframes);
-			ImGui::End();
+		ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0);
+		ImGui::Text("FPS: %.1f", deltaTime > 0.0 ? 1.0 / deltaTime : 0.0);
+		ImGui::Text("Window Size: %dx%d", window->getWidth(), window->getHeight());
+		ImGui::Separator();
+		ImGui::Checkbox("Draw Wireframes", &drawWireframes);
+		ImGui::End();
 
-			// clear screen and set draw mode
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glPolygonMode(GL_FRONT_AND_BACK, drawWireframes ? GL_LINE : GL_FILL);
+		// clear screen and set draw mode
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPolygonMode(GL_FRONT_AND_BACK, drawWireframes ? GL_LINE : GL_FILL);
 
-			shaders.use();
+		shaders.use();
 
-			glm::mat4 projection = glm::perspective(glm::radians(camera.getZoom()),
-				(float)window->getWidth() / (float)window->getHeight(), 0.1f, 100.0f);
-			shaders.setMat4("projection", projection);
-			glm::mat4 view = camera.getViewMatrix();
-			shaders.setMat4("view", view);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.getZoom()),
+			(float)window->getWidth() / (float)window->getHeight(), 0.1f, 100.0f);
+		shaders.setMat4("projection", projection);
+		glm::mat4 view = camera.getViewMatrix();
+		shaders.setMat4("view", view);
 
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
-			shaders.setMat4("model", model);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
+		shaders.setMat4("model", model);
 
-			auto models = loader.getLoadedModels();
-			shaders.use();
-			for (auto& model : models)
-				model->Draw(shaders);
+		backpack.Draw(shaders);
 
-			// render imgui on top of scene
-			ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		}
+		// render imgui on top of scene
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		// swap buffers and poll/process events
 		glfwSwapBuffers(window->wnd);
 		glfwPollEvents();
 		window->inputManager->processActions();
@@ -136,24 +126,6 @@ int main(int argc, char** argv) {
 	cleanupImgui();
 	delete window;
 	return 0;
-}
-
-void renderLoadingScreen() {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
-	ImGui::Begin("Loading", nullptr,
-		ImGuiWindowFlags_NoDecoration |
-		ImGuiWindowFlags_AlwaysAutoResize |
-		ImGuiWindowFlags_NoFocusOnAppearing |
-		ImGuiWindowFlags_NoNav);
-	ImGui::Text("Loading...");
-	ImGui::End();
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 // register input helpers
