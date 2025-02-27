@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
 	// load models
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window->wnd);
-	Model backpack("assets/models/backpack/backpack.obj");
+	Model backpack("assets/models/SpaceStation/Space Station Scene.obj");
 
 	// main loop
 	while (!glfwWindowShouldClose(window->wnd)) {
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 		shaders.use();
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.getZoom()),
-			(float)window->getWidth() / (float)window->getHeight(), 0.1f, 100.0f);
+			(float)window->getWidth() / (float)window->getHeight(), 0.1f, 1000.0f);
 		shaders.setMat4("projection", projection);
 		glm::mat4 view = camera.getViewMatrix();
 		shaders.setMat4("view", view);

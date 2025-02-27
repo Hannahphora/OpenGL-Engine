@@ -5,7 +5,7 @@ Camera::Camera(const glm::vec3& position)
     worldUp(0.0f, 1.0f, 0.0f),
     yaw(0.0f),
     pitch(0.0f),
-    movementSpeed(2.5f),
+    movementSpeed(5.0f),
     mouseSensitivity(0.1f),
     zoom(45.0f) {
     updateOrientation();
